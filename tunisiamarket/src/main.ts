@@ -1,8 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { Logger, Injectable } from '@nestjs/common';
+
+const port= 5000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  app.enableCors();
+  await app.listen(port, () => {
+    Logger.log(`is running on http://localhost:${port}`);
+  });
 }
 bootstrap();
