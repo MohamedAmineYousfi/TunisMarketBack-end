@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-
+import * as mongoose from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import { NextFunction } from 'express';
 export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true })
@@ -14,13 +16,13 @@ export class User {
   @Prop()
   age: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true,unique :true })
   email: string;
 
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true })
+  @Prop()
   dateOfBirth: Date;
 
   @Prop({ default: '' })
@@ -70,7 +72,21 @@ export class User {
 
   @Prop({ default: Date.now })
   lastConnexion: Date;
+  toObject: any;
 
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre('save', async function( next: any): Promise<any> {
+  try {
+    if (!this.isModified('password')) {
+      return next();
+    }
+    const hashed = await bcrypt.hash(this['password'], 10);
+    this['password'] = hashed;
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});

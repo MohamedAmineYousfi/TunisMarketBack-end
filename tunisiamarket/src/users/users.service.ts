@@ -1,41 +1,95 @@
-import { Injectable } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+import { LoginDTO } from '../auth/dto/login.dto'
+import { Payload } from 'src/types/payload';
+import { RegisterDTO } from './dto/register.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from 'src/schemas/user.schemas';
 import { Model } from 'mongoose';
 
 @Injectable()
 export class UsersService {
+
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const createdUser = new this.userModel(createUserDto);
-    return createdUser.save();
+  async create(RegisterDTO: RegisterDTO): Promise<User> {
+    const { email } = RegisterDTO;
+    const user = await this.userModel.findOne({ email });
+    if (user) {
+      throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+    }
+    const createdUser = new this.userModel(RegisterDTO);
+    await createdUser.save();
+    return this.sanitizeUser(createdUser);
   }
+
+  // return user object without password
+  sanitizeUser(user: User) {
+    const sanitized = user.toObject();
+    delete sanitized['password'];
+    return sanitized;
+  }
+
+  async findByLogin(UserDTO: LoginDTO) {
+    const { email, password } = UserDTO;
+    const user = await this.userModel.findOne({ email });
+    console.log(user,'test user login')
+    if (!user) {
+      throw new HttpException('user doesnt exists', HttpStatus.BAD_REQUEST);
+    }
+    if (await bcrypt.compare(password, user.password)) {
+      return this.sanitizeUser(user)
+    } else {
+      throw new HttpException('invalid credential', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+     // the new methods
+     async findByPayload(payload: Payload) {
+      const { email } = payload;
+      return await this.userModel.findOne({ email });
+    }
+   //update token with register
+   async updateToken(payload: Payload, token: string) : Promise<User>{
+    const { email } = payload;
+    const userToken = await this.userModel.findOne({ email });
+    return this.userModel.findByIdAndUpdate(userToken.id, {verificationToken:token}, { new: true }).exec();
+   }
 
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
   }
 
+  async findByEmail(email: string): Promise<User| undefined> {
+    return this.userModel.findOne({ email }).exec();
+  }
 
-  // create(createUserDto: CreateUserDto) {
-  //   return 'This action adds a new user';
+
+  async findById(id: string): Promise<User> {
+    return this.userModel.findById(id).exec();
+  }
+
+  // async create(user: User): Promise<User> {
+  //   const newUser = new this.userModel(user);
+  //   return newUser.save();
   // }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async update(id: string, user: User): Promise<User> {
+    return this.userModel.findByIdAndUpdate(id, user, { new: true }).exec();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async delete(id: string): Promise<User> {
+    return this.userModel.findByIdAndRemove(id).exec();
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  
 }
+//
+
+
+
+
+
+ 
+
