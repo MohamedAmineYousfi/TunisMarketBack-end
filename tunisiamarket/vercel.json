@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "src/main.js",
+            "src": "tunisiamarket/src/main.js",
             "use": "@vercel/node"
         }
     ],
@@ -10,7 +10,7 @@
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "src/main.js",
+            "dest": "tunisiamarket/src/main.js",
             "methods": [ "GET", "POST", "PUT", "PATCH", "DELETE" ]
         }
     ]
