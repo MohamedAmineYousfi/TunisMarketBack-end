@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
+// import * as bcrypt from 'bcrypt';
 import { LoginDTO } from '../auth/dto/login.dto'
 import { Payload } from 'src/types/payload';
 import { RegisterDTO } from './dto/register.dto';
@@ -39,11 +39,11 @@ export class UsersService {
     if (!user) {
       throw new HttpException('user doesnt exists', HttpStatus.BAD_REQUEST);
     }
-    if (await bcrypt.compare(password, user.password)) {
-      return this.sanitizeUser(user)
-    } else {
-      throw new HttpException('invalid credential', HttpStatus.BAD_REQUEST);
-    }
+    // if (await bcrypt.compare(password, user.password)) {
+    //   return this.sanitizeUser(user)
+    // } else {
+    //   throw new HttpException('invalid credential', HttpStatus.BAD_REQUEST);
+    // }
   }
 
      // the new methods

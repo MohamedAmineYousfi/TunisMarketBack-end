@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as mongoose from 'mongoose';
-import * as bcrypt from 'bcrypt';
+// import * as bcrypt from 'bcrypt';
 import { NextFunction } from 'express';
 export type UserDocument = HydratedDocument<User>;
 
@@ -83,7 +83,8 @@ UserSchema.pre('save', async function( next: any): Promise<any> {
     if (!this.isModified('password')) {
       return next();
     }
-    const hashed = await bcrypt.hash(this['password'], 10);
+    // const hashed = await bcrypt.hash(this['password'], 10);
+    var hashed ;
     this['password'] = hashed;
     return next();
   } catch (err) {
